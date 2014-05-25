@@ -258,26 +258,33 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
         body.addClass(OPENED_MODAL_CLASS);
       };
 
+      function broadcastClosing(modalWindow, resultOrReason, dismissed) {
+          return !modalWindow.value.modalScope.$broadcast('modal.closing', resultOrReason, dismissed).defaultPrevented;
+      }
+
       $modalStack.close = function (modalInstance, result) {
         var modalWindow = openedWindows.get(modalInstance);
-        if (modalWindow) {
+        if (modalWindow && broadcastClosing(modalWindow, result, true)) {
           modalWindow.value.deferred.resolve(result);
           removeModalWindow(modalInstance);
+          return true;
         }
+        return !modalWindow;
       };
 
       $modalStack.dismiss = function (modalInstance, reason) {
         var modalWindow = openedWindows.get(modalInstance);
-        if (modalWindow) {
+        if (modalWindow && broadcastClosing(modalWindow, reason, false)) {
           modalWindow.value.deferred.reject(reason);
           removeModalWindow(modalInstance);
+          return true;
         }
+        return !modalWindow;
       };
 
       $modalStack.dismissAll = function (reason) {
         var topModal = this.getTop();
-        while (topModal) {
-          this.dismiss(topModal.key, reason);
+        while (topModal && this.dismiss(topModal.key, reason)) {
           topModal = this.getTop();
         }
       };
@@ -328,10 +335,10 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
               result: modalResultDeferred.promise,
               opened: modalOpenedDeferred.promise,
               close: function (result) {
-                $modalStack.close(modalInstance, result);
+                return $modalStack.close(modalInstance, result);
               },
               dismiss: function (reason) {
-                $modalStack.dismiss(modalInstance, reason);
+                return $modalStack.dismiss(modalInstance, reason);
               }
             };
 
