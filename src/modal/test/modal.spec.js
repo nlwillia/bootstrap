@@ -630,7 +630,7 @@ describe('$modal', function () {
           $scope.$on('modal.closing', function(event, resultOrReason, closing) {
             called = true;
             expect(resultOrReason).toBe('result');
-            expect(close).toBeTruthy();
+            expect(closing).toBeTruthy();
           });
         }
       }), 'result');
@@ -643,7 +643,7 @@ describe('$modal', function () {
           $scope.$on('modal.closing', function(event, resultOrReason, closing) {
             called = true;
             expect(resultOrReason).toBe('reason');
-            expect(close).toBeFalsy();
+            expect(closing).toBeFalsy();
           });
         }
       }), 'reason');
