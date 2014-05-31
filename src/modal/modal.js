@@ -258,8 +258,8 @@ angular.module('ui.bootstrap.modal', ['ui.bootstrap.transition'])
         body.addClass(OPENED_MODAL_CLASS);
       };
 
-      function broadcastClosing(modalWindow, resultOrReason, dismissed) {
-          return !modalWindow.value.modalScope.$broadcast('modal.closing', resultOrReason, dismissed).defaultPrevented;
+      function broadcastClosing(modalWindow, resultOrReason, closing) {
+          return !modalWindow.value.modalScope.$broadcast('modal.closing', resultOrReason, closing).defaultPrevented;
       }
 
       $modalStack.close = function (modalInstance, result) {
