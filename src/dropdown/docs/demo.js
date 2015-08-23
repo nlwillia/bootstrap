@@ -1,4 +1,4 @@
-angular.module('ui.bootstrap.demo').controller('DropdownCtrl', function ($scope, $log) {
+angular.module('ui.bootstrap.demo').controller('DropdownCtrl', function ($scope) {
   $scope.items = [
     'The first choice!',
     'And another choice for you.',
@@ -10,7 +10,7 @@ angular.module('ui.bootstrap.demo').controller('DropdownCtrl', function ($scope,
   };
 
   $scope.toggled = function(open) {
-    $log.log('Dropdown is now: ', open);
+    console.log('Dropdown is now: ', open);
   };
 
   $scope.toggleDropdown = function($event) {

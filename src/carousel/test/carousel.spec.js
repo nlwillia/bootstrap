@@ -14,12 +14,12 @@ describe('carousel', function() {
   }));
   beforeEach(module('template/carousel/carousel.html', 'template/carousel/slide.html'));
 
-  var $rootScope, $compile, $controller, $interval;
-  beforeEach(inject(function(_$rootScope_, _$compile_, _$controller_, _$interval_) {
+  var $rootScope, $compile, $controller, $timeout;
+  beforeEach(inject(function(_$rootScope_, _$compile_, _$controller_, _$timeout_) {
     $rootScope = _$rootScope_;
     $compile = _$compile_;
     $controller = _$controller_;
-    $interval = _$interval_;
+    $timeout = _$timeout_;
   }));
 
   describe('basics', function() {
@@ -148,18 +148,16 @@ describe('carousel', function() {
 
     it('shouldnt go forward if interval is NaN or negative', function() {
       testSlideActive(0);
-      var previousInterval = scope.interval;
       scope.$apply('interval = -1');
-      $interval.flush(previousInterval);
+      //no timeout to flush, interval watch doesn't make a new one when interval is invalid
       testSlideActive(0);
       scope.$apply('interval = 1000');
-      $interval.flush(1000);
+      $timeout.flush();
       testSlideActive(1);
       scope.$apply('interval = false');
-      $interval.flush(1000);
       testSlideActive(1);
       scope.$apply('interval = 1000');
-      $interval.flush(1000);
+      $timeout.flush();
       testSlideActive(2);
     });
 
@@ -184,24 +182,23 @@ describe('carousel', function() {
 
     it('should be playing by default and cycle through slides', function() {
       testSlideActive(0);
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(1);
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(2);
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(0);
     });
 
     it('should pause and play on mouseover', function() {
       testSlideActive(0);
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(1);
       elm.trigger('mouseenter');
-      testSlideActive(1);
-      $interval.flush(scope.interval);
+      expect($timeout.flush).toThrow();//pause should cancel current timeout
       testSlideActive(1);
       elm.trigger('mouseleave');
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(2);
     });
 
@@ -209,10 +206,10 @@ describe('carousel', function() {
       scope.$apply('nopause = true');
       testSlideActive(0);
       elm.trigger('mouseenter');
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(1);
       elm.trigger('mouseleave');
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(2);
     });
 
@@ -222,7 +219,7 @@ describe('carousel', function() {
       scope.$apply('slides.splice(0,1)');
       expect(elm.find('div.item').length).toBe(2);
       testSlideActive(1);
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(0);
       scope.$apply('slides.splice(1,1)');
       expect(elm.find('div.item').length).toBe(1);
@@ -256,85 +253,14 @@ describe('carousel', function() {
 
     it('issue 1414 - should not continue running timers after scope is destroyed', function() {
       testSlideActive(0);
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(1);
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(2);
-      $interval.flush(scope.interval);
+      $timeout.flush();
       testSlideActive(0);
-      spyOn($interval, 'cancel').and.callThrough();
       scope.$destroy();
-      expect($interval.cancel).toHaveBeenCalled();
-    });
-
-    describe('slide order', function() {
-
-      beforeEach(function() {
-        scope.slides = [
-          {active:false,content:'one', id:1},
-          {active:false,content:'two', id:2},
-          {active:false,content:'three', id:3}
-        ];
-        elm = $compile(
-          '<carousel interval="interval" no-transition="true" no-pause="nopause">' +
-            '<slide ng-repeat="slide in slides | orderBy: \'id\' " active="slide.active" index="$index">' +
-              '{{slide.content}}' +
-            '</slide>' +
-          '</carousel>'
-        )(scope);
-        scope.$apply();
-        scope.slides[0].id = 3;
-        scope.slides[1].id = 1;
-        scope.slides[2].id = 2;
-        scope.$apply();
-      });
-
-      it('should change dom when an order of the slides was changed', function() {
-        testSlideActive(0);
-        var contents = elm.find('div.item');
-        expect(contents.length).toBe(3);
-        expect(contents.eq(0).text()).toBe('two');
-        expect(contents.eq(1).text()).toBe('three');
-        expect(contents.eq(2).text()).toBe('one');
-      });
-
-      it('should select next after order change', function() {
-        testSlideActive(0);
-        var next = elm.find('a.right');
-        next.click();
-        testSlideActive(1);
-      });
-
-      it('should select prev after order change', function() {
-        testSlideActive(0);
-        var prev = elm.find('a.left');
-        prev.click();
-        testSlideActive(2);
-      });
-
-      it('should add slide in the specified position', function() {
-        testSlideActive(0);
-        scope.slides[2].id = 4;
-        scope.slides.push({active:false,content:'four', id:2});
-        scope.$apply();
-        var contents = elm.find('div.item');
-        expect(contents.length).toBe(4);
-        expect(contents.eq(0).text()).toBe('two');
-        expect(contents.eq(1).text()).toBe('four');
-        expect(contents.eq(2).text()).toBe('one');
-        expect(contents.eq(3).text()).toBe('three');
-      });
-
-      it('should remove slide after order change', function() {
-        testSlideActive(0);
-        scope.slides.splice(1, 1);
-        scope.$apply();
-        var contents = elm.find('div.item');
-        expect(contents.length).toBe(2);
-        expect(contents.eq(0).text()).toBe('three');
-        expect(contents.eq(1).text()).toBe('one');
-      });
-
+      expect($timeout.flush).toThrow('No deferred tasks to be flushed');
     });
 
   });
@@ -396,17 +322,17 @@ describe('carousel', function() {
       });
 
       it('issue 1414 - should not continue running timers after scope is destroyed', function() {
-        spyOn(scope, 'next').and.callThrough();
+        spyOn(scope, 'next').andCallThrough();
         scope.interval = 2000;
         scope.$digest();
 
-        $interval.flush(scope.interval);
-        expect(scope.next.calls.count()).toBe(1);
+        $timeout.flush();
+        expect(scope.next.calls.length).toBe(1);
 
         scope.$destroy();
 
-        $interval.flush(scope.interval);
-        expect(scope.next.calls.count()).toBe(1);
+        $timeout.flush(scope.interval);
+        expect(scope.next.calls.length).toBe(1);
       });
     });
   });

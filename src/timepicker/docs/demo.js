@@ -1,4 +1,4 @@
-angular.module('ui.bootstrap.demo').controller('TimepickerDemoCtrl', function ($scope, $log) {
+angular.module('ui.bootstrap.demo').controller('TimepickerDemoCtrl', function ($scope) {
   $scope.mytime = new Date();
 
   $scope.hstep = 1;
@@ -22,7 +22,7 @@ angular.module('ui.bootstrap.demo').controller('TimepickerDemoCtrl', function ($
   };
 
   $scope.changed = function () {
-    $log.log('Time changed to: ' + $scope.mytime);
+    console.log('Time changed to: ' + $scope.mytime);
   };
 
   $scope.clear = function() {

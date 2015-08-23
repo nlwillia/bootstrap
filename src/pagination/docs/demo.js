@@ -1,4 +1,4 @@
-angular.module('ui.bootstrap.demo').controller('PaginationDemoCtrl', function ($scope, $log) {
+angular.module('ui.bootstrap.demo').controller('PaginationDemoCtrl', function ($scope) {
   $scope.totalItems = 64;
   $scope.currentPage = 4;
 
@@ -7,7 +7,7 @@ angular.module('ui.bootstrap.demo').controller('PaginationDemoCtrl', function ($
   };
 
   $scope.pageChanged = function() {
-    $log.log('Page changed to: ' + $scope.currentPage);
+    console.log('Page changed to: ' + $scope.currentPage);
   };
 
   $scope.maxSize = 5;

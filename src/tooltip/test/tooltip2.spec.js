@@ -12,26 +12,16 @@ describe('tooltip directive', function () {
   }));
 
   beforeEach(function(){
-    jasmine.addMatchers({
-      toHaveOpenTooltips: function(util, customEqualityTesters) {
-        return {
-          compare: function(actual, noOfOpened) {
-            var ttipElements = actual.find('div.tooltip');
-            noOfOpened = noOfOpened || 1;
+    this.addMatchers({
+      toHaveOpenTooltips: function(noOfOpened) {
+        var ttipElements = this.actual.find('div.tooltip');
+        noOfOpened = noOfOpened || 1;
 
-            var result = {
-              pass: util.equals(ttipElements.length, noOfOpened, customEqualityTesters)
-            };
-
-            if (result.message) {
-              result.message = 'Expected "' + angular.mock.dump(ttipElements) + '" not to have "' + ttipElements.length + '" opened tooltips.';
-            } else {
-              result.message = 'Expected "' + angular.mock.dump(ttipElements) + '" to have "' + ttipElements.length + '" opened tooltips.';
-            }
-
-            return result;
-          }
+        this.message = function() {
+          return 'Expected "' + angular.mock.dump(ttipElements) + '" to have "' + ttipElements.length + '" opened tooltips.';
         };
+
+        return ttipElements.length === noOfOpened;
       }
     });
   });
@@ -111,22 +101,6 @@ describe('tooltip directive', function () {
 
     });
 
-    describe('class', function () {
-
-      it('can specify a custom class', function () {
-        var fragment = compileTooltip('<span tooltip="tooltip text" tooltip-class="custom">Trigger here</span>');
-        fragment.find('span').trigger( 'mouseenter' );
-
-        var ttipElement = fragment.find('div.tooltip');
-        expect(fragment).toHaveOpenTooltips();
-        expect(ttipElement).toHaveClass('custom');
-
-        closeTooltip(fragment.find('span'));
-        expect(fragment).not.toHaveOpenTooltips();
-      });
-
-    });
-
   });
 
   it('should show even after close trigger is called multiple times - issue #1847', function () {
@@ -159,15 +133,4 @@ describe('tooltip directive', function () {
     expect(fragment).not.toHaveOpenTooltips();
   });
 
-  it('should not show tooltips element is disabled (button) - issue #3167', function () {
-    var fragment = compileTooltip('<button tooltip="cancel!" ng-disabled="disabled" ng-click="disabled = true">Cancel</button>');
-
-    fragment.find('button').trigger( 'mouseenter' );
-    expect(fragment).toHaveOpenTooltips();
-
-    fragment.find('button').trigger( 'click' );
-    $timeout.flush();
-    // One needs to flush deferred functions before checking there is no tooltip.
-    expect(fragment).not.toHaveOpenTooltips();
-  });
 });
